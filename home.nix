@@ -1,9 +1,13 @@
 { pkgs, ... }:
 
 {
+
+  nixpkgs.config.allowUnfree = true;
+
   home.packages = [
     pkgs.htop
     pkgs.fortune
+    pkgs.google-chrome
   ];
 
   programs.emacs = {
@@ -40,6 +44,20 @@
       customRC = builtins.readFile vim/vimrc;
     };
   };
+
+  programs.zsh = {
+   enable = true;
+   shellAliases = { vim = "nvim"; };
+  };
+
+
+  # Enable Oh-my-zsh
+  programs.zsh.oh-my-zsh = {
+    enable = true;
+    theme = "candy";
+    plugins = [ "git" "sudo" "docker" "kubectl" ];
+  };
+
 
   programs.firefox = {
     enable = true;
