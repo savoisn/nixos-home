@@ -1,14 +1,37 @@
 { pkgs, ... }:
 
 {
+  imports = [
+    ./tools
+  ];
 
   nixpkgs.config.allowUnfree = true;
 
-  home.packages = [
-    pkgs.htop
-    pkgs.fortune
-    pkgs.google-chrome
+  home.packages = with pkgs; [
+    htop
+    fortune
+    google-chrome
+    pasystray
+    pavucontrol
+    blueman
+    xorg.xbacklight
+    slack-dark
+    spotify
+    brightnessctl
+    xorg.xcalc
+    tdesktop
   ];
+
+  xresources.properties = { 
+    "xterm*background" = "black"; 
+    "xterm*foreground" = "lightgray"; 
+    "xterm*faceName" = "monospace:pixelsize=14";
+    "*background" = "black";
+    "*foreground" = "white";
+#    "URxvt.font" = "xft:Hermit Light:size=12"; # fun but not my taste
+    "URxvt.font" = "xft:monospace:size=12";
+    "URxvt.scrollBar" = "false";
+  };
 
   programs.emacs = {
     enable = true;
@@ -38,11 +61,16 @@
           fugitive
           vim-nix
           vim-elixir
+          nerdtree
         ];
       };
 
       customRC = builtins.readFile vim/vimrc;
     };
+  };
+
+  programs.tmux = {
+    enable = true;
   };
 
   programs.zsh = {
