@@ -1,0 +1,126 @@
+#!/run/current-system/sw/bin/bash
+
+PROFILES="
+HOME
+GO
+"
+
+usage(){
+  echo "only 1 argument needed as profile name"
+  echo "available profiles are : $PROFILES"
+}
+
+nb_argument=$#
+
+if [[ nb_argument -gt 1 ]]
+then
+  usage
+  exit 1
+fi
+
+PROFILE=$1
+
+echo $PROFILE
+
+SESSION="ide-session-$1"
+
+echo "creating tmux session $SESSION"
+
+tmux has-session -t $SESSION
+AllreadyExists=$?
+
+if [[ $AllreadyExists -eq 0 ]] 
+then
+  echo "tmux session found, attaching to it"
+  tmux -2 attach-session -d -t $SESSION
+  exit 0
+fi
+
+tmux -2 new-session -d -s $SESSION
+
+# Setup a window for tailing log files
+#tmux new-window -t $SESSION:1 -n 'Shells'
+tmux split-window -h
+tmux select-pane -t 0
+tmux select-pane -t 1
+tmux split-window -v
+tmux split-window -v
+tmux split-window -v
+tmux send-keys "htop" C-m
+tmux select-pane -t 0
+tmux split-window -v
+tmux new-window -t $SESSION:2 -n 'Vim' 
+tmux split-window -h
+tmux split-window -v
+tmux resize-pane -t 1 -R 15 # Set default window
+tmux select-pane -t 0
+tmux send-keys "cd ~/Projects && nvim" C-m
+tmux select-window -t $SESSION:1
+
+if [[ "$PROFILE" == "popartisan" || "$PROFILE" == "pop" || "$PROFILE" == "POPARTISAN" || "$PROFILE" == "POP" ]]
+then
+  tmux select-window -t $SESSION:1
+  tmux select-pane -t 2
+  tmux send-keys "" C-m
+  tmux select-window -t $SESSION:2
+  tmux select-pane -t 0
+  tmux send-keys "" C-m
+  tmux select-pane -t 1
+  tmux send-keys "" C-m
+  tmux select-pane -t 2
+  tmux send-keys "" C-m
+elif [[ "$PROFILE" == "trombi" || "$PROFILE" == "TROMBI" ]]
+then
+  tmux select-window -t $SESSION:1
+  tmux select-pane -t 2
+  tmux send-keys "g trombi" C-m
+  tmux select-window -t $SESSION:2
+  tmux rename-window -t $SESSION:2 'Elixir'
+  tmux select-pane -t 0
+  tmux send-keys "g trombi && nvim" C-m
+  tmux select-pane -t 1
+  tmux send-keys "g trombi" C-m
+  tmux select-pane -t 2
+  tmux send-keys "g trombi" C-m
+  tmux new-window -t $SESSION:3 -n 'Vuejs' 
+  tmux split-window -h
+  tmux split-window -v
+  tmux select-pane -t 0
+  tmux send-keys "g trombi && nvim" C-m
+  tmux resize-pane -t 1 -x 90 # Set default window
+  tmux select-pane -t 1
+  tmux send-keys "g trombi" C-m
+  tmux select-pane -t 2
+  tmux send-keys "g trombi" C-m
+  tmux select-window -t $SESSION:1
+elif [ "$PROFILE" == "HOME" ];
+then
+  tmux select-pane -t 0
+  tmux send-keys "echo 'HOME'" C-m
+  tmux select-pane -t 2
+  tmux send-keys "echo 'HOME'" C-m
+  tmux select-window -t $SESSION:2
+  tmux send-keys "vim --servername VI" C-m
+elif [ "$PROFILE" == "GO" ];
+then
+  tmux select-pane -t 0
+  tmux send-keys "cd $GOPATH" C-m
+  tmux select-pane -t 3
+  tmux send-keys "$GOPATH/bin/gotour" C-m
+  tmux select-pane -t 4
+  tmux send-keys "cd ~/Documents/golang/golang.org && python -m SimpleHTTPServer 4444" C-m
+  tmux select-pane -t 1
+  tmux send-keys "cd $GOPATH" C-m
+  tmux select-pane -t 2
+  tmux send-keys "echo 'GO'" C-m
+  tmux select-window -t $SESSION:2
+  tmux select-pane -t 0
+  tmux send-keys "vim --servername VI" C-m
+else
+  echo "pas de profile defini"
+fi
+
+tmux select-window -t $SESSION:1
+# Attach to session
+tmux -2 attach-session -t $SESSION
+

@@ -8,18 +8,32 @@
   nixpkgs.config.allowUnfree = true;
 
   home.packages = with pkgs; [
+    acpi
     htop
     fortune
+    cowsay
+    ponysay
     google-chrome
     pasystray
+    arandr
     pavucontrol
     blueman
     xorg.xbacklight
     slack-dark
     spotify
     brightnessctl
-    xorg.xcalc
+    any-nix-shell
     tdesktop
+    qalculate-gtk
+    vagrant
+    ansible
+    rox-filer
+    pcmanfm
+    xarchiver
+    unzip
+    xclip
+    vscode
+    jetbrains.idea-ultimate
   ];
 
   xresources.properties = { 
@@ -31,6 +45,11 @@
 #    "URxvt.font" = "xft:Hermit Light:size=12"; # fun but not my taste
     "URxvt.font" = "xft:monospace:size=12";
     "URxvt.scrollBar" = "false";
+    "URxvt.keysym.C-Down" =  "resize-font:smaller";
+    "URxvt.keysym.C-Up" = "resize-font:bigger";
+    "URxvt.iso14755" = "false";
+    "URxvt.iso14755_52" = "false";
+    "urxvt.perl-ext-common" = "default,resize-font";
   };
 
   programs.emacs = {
@@ -55,7 +74,6 @@
       #];
       packages.myVimPackage = with pkgs.vimPlugins; {
         start = [
-          #colors-solarized
           zenburn
           ctrlp
           fugitive
@@ -74,8 +92,12 @@
   };
 
   programs.zsh = {
-   enable = true;
-   shellAliases = { vim = "nvim"; };
+    enable = true;
+    shellAliases = { vim = "nvim"; };
+    initExtra =  ''
+      any-nix-shell zsh --info-right | source /dev/stdin
+      source ~/.zshrc_functions
+    '';
   };
 
 
@@ -83,7 +105,7 @@
   programs.zsh.oh-my-zsh = {
     enable = true;
     theme = "candy";
-    plugins = [ "git" "sudo" "docker" "kubectl" ];
+    plugins = [ "git" "sudo" "docker" "kubectl" "mix"];
   };
 
 

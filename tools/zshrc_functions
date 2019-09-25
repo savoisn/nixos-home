@@ -1,0 +1,874 @@
+bright_up(){
+  max_brightness=$(cat /sys/class/backlight/intel_backlight/max_brightness)
+  brightness=$(cat /sys/class/backlight/intel_backlight/brightness)
+  echo $max_brightness
+  echo $brightness
+
+  if [ $brightness -lt $max_brightness ]; then
+    let brightness=$brightness+500
+    echo "echo $brightness > /sys/class/backlight/intel_backlight/brightness" | zsh
+  fi
+}
+
+bright_down(){
+
+  brightness=$(cat /sys/class/backlight/intel_backlight/brightness)
+
+  if [ $brightness -gt 0 ]; then
+    let brightness=$brightness-500
+    echo "echo $brightness > /sys/class/backlight/intel_backlight/brightness" | zsh #or bash
+  fi
+
+}
+
+export DOCKER_REPO_PREFIX="nsa"
+
+dcFullRestart(){
+  if [[ $# != 1 ]]; then
+    echo "need 1 param for service to Full Restart"
+    return 1
+  fi
+	local service_name=$1
+  dc stop $service_name
+  dc rm -vf $service_name
+  dc up -d $service_name
+  sleep 3
+  dc logs $service_name
+}
+
+dcleanup(){
+	local containers
+	containers=( $(docker ps -aq 2>/dev/null) )
+	docker rm "${containers[@]}" 2>/dev/null
+	local volumes
+	volumes=( $(docker ps --filter status=exited -q 2>/dev/null) )
+	docker rm -v "${volumes[@]}" 2>/dev/null
+	local images
+	images=( $(docker images --filter dangling=true -q 2>/dev/null) )
+	docker rmi "${images[@]}" 2>/dev/null
+}
+
+del_stopped(){
+	local name=$1
+	local state
+	state=$(docker inspect --format "{{.State.Running}}" "$name" 2>/dev/null)
+
+	if [[ "$state" == "false" ]]; then
+		docker rm "$name"
+	fi
+}
+
+relies_on(){
+	for container in "$@"; do
+		local state
+		state=$(docker inspect --format "{{.State.Running}}" "$container" 2>/dev/null)
+
+		if [[ "$state" == "false" ]] || [[ "$state" == "" ]]; then
+			echo "$container is not running, starting it for you."
+			$container
+		fi
+	done
+}
+
+atom(){
+	del_stopped atom
+	docker run -d \
+		-v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+		-v /dev/shm:/dev/shm \
+		-v $HOME:$HOME \
+    -v /etc/passwd:/etc/passwd \
+		-e DISPLAY \
+    -e "HOME:${HOME}" \
+    -u $(id -u):$(id -g) \
+		--name atom \
+		nsa/atom
+}
+
+
+catimg(){
+  docker run -it --rm nsa/catimg
+}
+
+chrome_in_docker(){
+	# add flags for proxy if passed
+	local proxy=
+	local map
+	local args=$*
+	if [[ "$1" == "tor" ]]; then
+		relies_on torproxy
+
+		map="MAP * ~NOTFOUND , EXCLUDE torproxy"
+		proxy="socks5://torproxy:9050"
+		args="https://check.torproject.org/api/ip ${*:2}"
+	fi
+
+	del_stopped chrome
+
+	# one day remove /etc/hosts bind mount when effing
+	# overlay support inotify, such bullshit
+	docker run -d \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /etc/machine-id:/etc/machine-id:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-e "DISPLAY=unix${DISPLAY}" \
+		-v "${HOME}/Downloads:/root/Downloads" \
+		-v "${HOME}/Pictures:/root/Pictures" \
+		-v "${HOME}/Torrents:/root/Torrents" \
+		-v "${HOME}/.chrome/data:/data" \
+    -v "${HOME}/.chrome/fakehome:/home/nico" \
+		-e XAUTHORITY \
+		-v "/var/run/user/$(id -u):/var/run/user/$(id -u)" \
+		-v "${HOME}/.Xauthority:$HOME/.Xauthority" \
+		-v /var/run/dbus:/var/run/dbus \
+		-v /dev/shm:/dev/shm \
+		-v /etc/hosts:/etc/hosts \
+    -v /etc/passwd:/etc/passwd \
+    -e "HOME:${HOME}" \
+		--security-opt seccomp:/home/nico/Project/jessfraz/dotfiles/etc/docker/seccomp/chrome.json \
+		--device /dev/snd \
+		--device /dev/dri \
+		--device /dev/video0 \
+		--device /dev/bus/usb \
+		--group-add audio \
+		--group-add video \
+		--name chrome \
+    -u $(id -u):$(id -g) \
+		nsa/chrome --user-data-dir=/data \
+		--proxy-server="$proxy" \
+		--host-resolver-rules="$map" "$args" 
+}
+
+eclipse(){
+	del_stopped eclipse
+	docker run -d \
+		-v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+    -v /etc/passwd:/etc/passwd \
+    -v ~/Project/Eclipse/fakehome:$HOME \
+    -v ~/Project/Eclipse/Project:/Project \
+    -v ~/Project/Eclipse/Workspace/mars:/workspace \
+    -e DISPLAY \
+    -u $(id -u):$(id -g) \
+		--name eclipse \
+		nsa/eclipse:mars
+}
+
+
+base_erl(){
+
+
+  docker run -it --rm \
+    -u `id -u`:`id -g` \
+    -v `pwd`:/appli \
+    -v /etc/passwd:/etc/passwd \
+    -v /etc/group:/etc/group \
+    nsa/alpine_phoenix:1.0.0 $* 
+    #nsa/elixir:141-open $*
+
+}
+base_elixir(){
+
+  relies_on postgres_vinolien
+
+  docker run -it --rm \
+    -u `id -u`:`id -g` \
+    -v `pwd`:/appli \
+    -v /etc/passwd:/etc/passwd \
+    -v /etc/group:/etc/group \
+    -p 4000:4000 \
+    -p 8000:8000 \
+    --link postgres_vinolien:postgres \
+    nsa/elixir:141-open $*
+    #nsa/alpine_phoenix:1.0.0 $* 
+}
+
+runAlpinePhoenix(){
+	docker build -t nsa/vinolien .
+
+  docker run -it --rm \
+    -e POSTGRESQL_ADDON_URI="postgresql://postgres:postgres@postgres:5432/appli_dev" \
+    -e PORT="4000" \
+    -e SECRET_KEY_BASE="2UJP0mmVqzQbxXvz1ZRulehkeGFr0O5JuOPvtUsV08Dy5HYAMcY+yvKeNMpjQ6EA" \
+    -e MIX_ENV=prod_cc \
+    -p 4000:4000 \
+    --link postgres_vinolien:postgres \
+    --name vinolien \
+		nsa/vinolien $*
+}
+
+#elixir_bb(){
+  #base_elixir sh
+#}
+
+#erlc(){
+  #base_erl erlc $*
+#}
+#erl(){
+  #base_erl erl $*
+#}
+
+#mix(){
+  #base_elixir mix $*
+#}
+
+#elixir(){
+  #base_elixir elixir $*
+#}
+
+#npm_elixir(){
+  #base_elixir npm $*
+#}
+
+#node_elixir(){
+  #base_elixir node $*
+#}
+
+#iex(){
+  #base_elixir iex $*
+#}
+
+#elm(){
+  #base_elixir elm $*
+#}
+
+#elm-reactor(){
+  #base_elixir elm-reactor --address=0.0.0.0 $*
+#}
+
+#elm-make(){
+  #base_elixir elm-make $*
+#}
+
+#elm-package(){
+  #base_elixir elm-package $*
+#}
+
+#elm-repl(){
+  #base_elixir elm-repl $*
+#}
+
+heroku(){
+  docker run -it --rm \
+    -u `id -u`:`id -g` \
+    -v `pwd`:/appli \
+    -v /etc/passwd:/etc/passwd:ro \
+    -v /etc/group:/etc/group:ro \
+    -v ~/Project/heroku/fakehome:/home/nico \
+    --name heroku \
+    nsa/heroku-toolbelt heroku $*
+}
+
+heroku_bb(){
+  docker run -it --rm \
+    -u `id -u`:`id -g` \
+    -v `pwd`:/appli \
+    -v /etc/passwd:/etc/passwd:ro \
+    -v /etc/group:/etc/group:ro \
+    -v ~/Project/heroku/fakehome:/home/nico \
+    --name heroku \
+    --entrypoint /bin/bash \
+    nsa/heroku-toolbelt
+}
+
+heroku_bb_root(){
+  docker run -it --rm \
+    -v `pwd`:/appli \
+    -v ~/Project/perso/vinolien_cert/:/var/www/vinolien \
+    --entrypoint /bin/bash \
+    nsa/heroku-toolbelt
+}
+
+postgres_elixir(){
+	del_stopped postgres_elixir
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/elixir/pg-data:/var/lib/postgresql/data \
+    --name postgres_elixir \
+    postgres:11.1
+}
+
+postgres_elixir_workshop(){
+
+	del_stopped postgres_elixir_workshop
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/elixir_workshop/pg-data:/var/lib/postgresql/data \
+    --name postgres_elixir_workshop \
+    postgres:11.1
+}
+
+postgres_ask_us_anything(){
+
+	del_stopped postgres_ask_us_anything
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/ueberauth/pg-data:/var/lib/postgresql/data \
+    --name postgres_ask_us_anything \
+    postgres
+}
+
+
+postgres_direct_energie(){
+
+	del_stopped postgres_direct_energie
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/10-DE/pg-data:/var/lib/postgresql/data \
+    -v $HOME/Projects/Direct_Energie/benchmark-faker/output:/home/nico/Projects/Direct_Energie/benchmark-faker/output/ \
+    --name postgres_direct_energie \
+    postgres:10.4
+}
+
+postgres_ueberauth(){
+
+	del_stopped postgres_ueberauth
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/ueberauth/pg-data:/var/lib/postgresql/data \
+    --name postgres_ueberauth \
+    postgres
+}
+
+postgres_cina(){
+
+	del_stopped postgres_cina
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/cina/pg-data:/var/lib/postgresql/data \
+    --name postgres_cina \
+    postgres
+}
+
+postgres_wob(){
+
+	del_stopped postgres_wob
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/wob/pg-data:/var/lib/postgresql/data \
+    --name postgres_wob \
+    postgres
+}
+
+postgres_gs1(){
+
+	del_stopped postgres_gs1
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/gs1/pg-data:/var/lib/postgresql/data \
+    --name postgres_gs1 \
+    postgres
+}
+postgres_castle(){
+
+	del_stopped postgres_castle
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/castle/pg-data:/var/lib/postgresql/data \
+    --name postgres_castle \
+    postgres
+}
+postgres_trombi(){
+
+	del_stopped postgres_trombi
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/trombi/pg-data:/var/lib/postgresql/data \
+    --name postgres_trombi \
+    postgres
+}
+
+postgres_vinolien(){
+
+	del_stopped postgres_vinolien
+  docker run -d \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -p 5432:5432 \
+    -v $HOME/tmp/docker-data/vinolien/pg-data:/var/lib/postgresql/data \
+    --name postgres_vinolien \
+    postgres
+}
+
+vinolien(){
+  docker run -it --rm \
+    -e POSTGRESQL_ADDON_URI="postgresql://postgres:postgres@postgres:5432/appli_dev" \
+    -e PORT="4000" \
+    -e SECRET_KEY_BASE="2UJP0mmVqzQbxXvz1ZRulehkeGFr0O5JuOPvtUsV08Dy5HYAMcY+yvKeNMpjQ6EA" \
+    --link postgres_vinolien:postgres \
+    --name vinolien \
+    -p 4000:4000 \
+    nsa/vinolien
+}
+
+webstorm(){
+	del_stopped webstorm
+
+	docker run --rm -it \
+		-v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+    -v /etc/passwd:/etc/passwd \
+    -v ~/Projects/Idea/fakehome:/home/nico/ \
+    -v ~/Projects/Idea/Projects:/home/nico/Projects \
+    -e DISPLAY \
+    -e "JAVA_HOME=/usr/bin/jvm/java-8-oracle" \
+    -e "HOME=/home/nico" \
+    -u $(id -u):$(id -g) \
+		--name webstorm \
+		nsa/intellij:webstorm
+}
+
+idea201831(){
+	del_stopped idea201831
+  relies_on myrabbit
+
+	docker run -d \
+    -v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+    -v /etc/passwd:/etc/passwd \
+    -v /etc/group:/etc/group \
+    -v ~/Projects/Idea/fakehome:/home/nico \
+    -v ~/Projects/Idea/Projects:/home/nico/Projects \
+    --link myrabbit:myrabbit \
+    -p 8080:8080 \
+    -p 3000:3000 \
+    -p 4000:4000 \
+    -e DISPLAY \
+    -e "JAVA_HOME=/usr/bin/jvm/java-8-oracle" \
+    -e "HOME=/home/nico" \
+    -u $(id -u):$(id -g) \
+    --name idea201831 \
+    nsa/intellij:idea201831
+}
+idea201834(){
+	del_stopped idea201834
+  relies_on myrabbit
+
+	docker run -d \
+    -v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+    -v /etc/passwd:/etc/passwd \
+    -v /etc/group:/etc/group \
+    -v ~/Projects/Idea/fakehome:/home/nico \
+    -v ~/Projects/Idea/Projects:/home/nico/Projects \
+    --link myrabbit:myrabbit \
+    -p 8080:8080 \
+    -p 8081:8081 \
+    -p 8082:8082 \
+    -p 8083:8083 \
+    -p 3000:3000 \
+    -p 4000:4000 \
+    -e DISPLAY \
+    -e "JAVA_HOME=/usr/bin/jvm/java-8-oracle" \
+    -e "HOME=/home/nico" \
+    -u $(id -u):$(id -g) \
+    --name idea201834 \
+    nsa/intellij:idea201834
+}
+idea(){
+	del_stopped idea
+  relies_on myrabbit
+
+	docker run -d \
+    -v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+    -v /etc/passwd:/etc/passwd \
+    -v /etc/group:/etc/group \
+    -v ~/Projects/Idea/fakehome:/home/nico \
+    -v ~/Projects/Idea/Projects:/home/nico/Projects \
+    --link myrabbit:myrabbit \
+    -p 8080:8080 \
+    -p 3000:3000 \
+    -p 4000:4000 \
+    -e DISPLAY \
+    -e "JAVA_HOME=/usr/bin/jvm/java-8-oracle" \
+    -e "HOME=/home/nico" \
+    -u $(id -u):$(id -g) \
+    --name idea \
+    nsa/intellij:idea
+}
+
+skype-docker(){
+	del_stopped skype
+  docker run -d \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v $HOME/.Skype:/home/skype/.Skype \
+    -e DISPLAY \
+    --link pulseaudio:pulseaudio \
+    -e PULSE_SERVER=pulseaudio \
+    --device /dev/video0 \
+    --name skype \
+    nsa/skype:1.0
+}
+slack(){
+	del_stopped slack
+
+	docker run -d \
+    -v /var/run/dbus:/var/run/dbus \
+    -v /run/user/1000/bus:/run/user/1000/bus \
+    -v ~/.dbus/:/home/nico/.dbus/ \
+		-v "${HOME}/.Xauthority:$HOME/.Xauthority" \
+		-v "/var/run/user/$(id -u):/var/run/user/$(id -u)" \
+		-e XAUTHORITY \
+		-e DBUS_SESSION_BUS_ADDRESS \
+    -v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+    -e DISPLAY \
+    -e TZ=CET-1 \
+    --device /dev/snd \
+    -v /dev/shm:/dev/shm \
+    -v ~/.config/Slack:/home/nico/.config/Slack \
+    -v /etc/passwd:/etc/passwd \
+    -v /etc/group:/etc/group \
+    -v /home/nico/slack-home/:/home/nico \
+    -v /home/nico/Downloads:/home/nico/Downloads \
+    -u $(id -u):$(id -g) \
+    --name slack \
+    nsa/slack:3.3
+    #--device=/dev/video0:/dev/video0 \
+}
+
+cheese(){
+	del_stopped cheese
+
+	docker run -d \
+    -v /var/run/dbus:/var/run/dbus \
+    -v /run/user/1000/bus:/run/user/1000/bus \
+    -v ~/.dbus/:/home/nico/.dbus/ \
+		-v "${HOME}/.Xauthority:$HOME/.Xauthority" \
+		-v "/var/run/user/$(id -u):/var/run/user/$(id -u)" \
+		-e XAUTHORITY \
+		-e DBUS_SESSION_BUS_ADDRESS \
+    -v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+    -e DISPLAY \
+    --device /dev/snd \
+    --device /dev/dri \
+    --device /dev/video0 \
+    -v /dev/shm:/dev/shm \
+    -v /etc/passwd:/etc/passwd \
+    -v /etc/group:/etc/group \
+    -v ~/home/cheese-home/:/home/nico \
+    -u $(id -u):$(id -g) \
+    --name cheese \
+    nsa/cheese:1.0
+}
+
+hangups(){
+
+	del_stopped hangups
+
+  docker run -it --rm \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /etc/machine-id:/etc/machine-id:ro \
+    -v ~/.dbus/:/home/nico/.dbus/ \
+		-v /var/run/dbus:/var/run/dbus \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-v "${HOME}/.Xauthority:$HOME/.Xauthority" \
+		-v "/var/run/user/$(id -u):/var/run/user/$(id -u)" \
+		-e "DISPLAY=unix${DISPLAY}" \
+		-e XAUTHORITY \
+		-e DBUS_SESSION_BUS_ADDRESS \
+		--net=host \
+    --name hangups \
+    nsa/hangups
+}
+
+powerpoint(){
+  local file=$1
+	del_stopped libreoffice
+  docker run -d \
+		-v /etc/machine-id:/etc/machine-id:ro \
+    -v /etc/localtime:/etc/localtime:ro \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=unix$DISPLAY" \
+    -v "${HOME}/Project/perso/prez/docker-on-desktop/:/data/" \
+    -v "${HOME}/.chrome/fakehome:/home/nico" \
+    -v /etc/passwd:/etc/passwd \
+    -e GDK_SCALE \
+    -e GDK_DPI_SCALE \
+    -e "HOME" \
+    -u $(id -u):$(id -g) \
+    --name libreoffice \
+    nsa/libreoffice "/data/${file}"
+}
+
+mdp(){
+  local file=$1
+
+	del_stopped mdp
+
+  docker run -it \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /etc/machine-id:/etc/machine-id:ro \
+		-v "${PWD}":/data \
+    -v /etc/passwd:/etc/passwd \
+    -e "HOME" \
+    -u $(id -u):$(id -g) \
+    --name mdp \
+    nsa/mdp:v0.2 "/data/${file}"
+}
+
+mutt(){
+	del_stopped mutt
+	read -s ?"type gmail password " password
+
+	GMAIL="nicolas.savois@gmail.com"
+	GMAIL_NAME=$GMAIL
+	GMAIL_PASS=$password
+	GMAIL_FROM=$GMAIL
+	gpg_id="$(gpg --list-keys --with-colons nicolas.savois@gmail.com | awk -F':' '/^pub/ { print $5 }')"
+
+	docker run -it --rm \
+			-v /etc/localtime:/etc/localtime \
+			-e GMAIL=$GMAIL -e GMAIL_NAME=$GMAIL_NAME \
+			-e GMAIL_PASS=$GMAIL_PASS -e GMAIL_FROM=$GMAIL_FROM \
+			-e gpg_id \
+			-v $HOME/.gnupg:/home/user/.gnupg \
+			-v $HOME/.mutt/cache/:/home/user/.mutt/cache/ \
+			--name mutt \
+			nsa/mutt
+}
+
+notify_osd(){
+	del_stopped notify_osd
+
+	docker run -d \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		--net none \
+		-v /etc \
+		-v /home/user/.dbus \
+		-v /home/user/.cache/dconf \
+		-e "DISPLAY=unix${DISPLAY}" \
+		--name notify_osd \
+		nsa/notify-osd
+}
+
+playonlinux(){
+	# one day remove /etc/hosts bind mount when effing
+	# overlay support inotify, such bullshit
+	docker run -it --rm \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /etc/machine-id:/etc/machine-id:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v /home/nico/Games:/home/gamer:rw \
+		-v "/var/run/user/$(id -u):/var/run/user/$(id -u)" \
+		-v "${HOME}/.Xauthority:$HOME/.Xauthority" \
+		-v /var/run/dbus:/var/run/dbus \
+		-v /dev/shm:/dev/shm \
+		-v /etc/hosts:/etc/hosts \
+    -v /etc/passwd:/etc/passwd \
+    -e "HOME:${HOME}" \
+		-e "DISPLAY=unix${DISPLAY}" \
+		-e XAUTHORITY \
+    -u $(id -u):$(id -g) \
+		--security-opt seccomp:/home/nico/Project/jessfraz/dotfiles/etc/docker/seccomp/chrome.json \
+		--device /dev/snd \
+		--device /dev/dri \
+		--device /dev/video0 \
+		--device /dev/bus/usb \
+		--group-add audio \
+		--group-add video \
+		--name playonlinux \
+		nsa/playonlinux
+}
+
+pulseaudio(){
+	del_stopped pulseaudio
+
+ docker run -d \
+  -v /etc/localtime:/etc/localtime:ro \
+  --device /dev/snd \
+  --name pulseaudio \
+  -p 4713:4713 \
+  -v /var/run/dbus:/var/run/dbus \
+  -v /etc/machine-id:/etc/machine-id \
+  nsa/pulseaudio:1.0
+
+}
+
+spotify(){
+	del_stopped spotify
+
+	docker run -d \
+    -v ~/.dbus/:/home/nico/.dbus/ \
+		-v /var/run/dbus:/var/run/dbus \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-v "${HOME}/.Xauthority:$HOME/.Xauthority" \
+		-v "/var/run/user/$(id -u):/var/run/user/$(id -u)" \
+		-e XAUTHORITY \
+		-e DBUS_SESSION_BUS_ADDRESS \
+		--net=host \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-e "DISPLAY=unix${DISPLAY}" \
+		-e QT_DEVICE_PIXEL_RATIO \
+		--security-opt seccomp:unconfined \
+		--device /dev/snd \
+		--device /dev/dri \
+		--group-add audio \
+		--group-add video \
+		--name spotify \
+		nsa/spotify
+}
+
+termboy(){
+	local game=$1
+
+	docker run --rm -it \
+		--device /dev/snd \
+		--name termboy \
+		nsa/termboy "/games/${game}.gb"
+}
+
+torproxy(){
+	del_stopped torproxy
+
+	docker run -d \
+		--restart always \
+		-v /etc/localtime:/etc/localtime:ro \
+		-p 9050:9050 \
+		--name torproxy \
+		nsa/tor-proxy
+
+	hostess add torproxy "$(docker inspect --format '{{.NetworkSettings.Networks.bridge.IPAddress}}' torproxy)"
+}
+
+vscode(){
+	del_stopped vscode
+	docker run -d \
+		-v /tmp/.X11-unix/:/tmp/.X11-unix/ \
+		-v /dev/shm:/dev/shm \
+		-v $HOME:$HOME \
+    -v /etc/passwd:/etc/passwd \
+		-e DISPLAY \
+    -e "HOME:${HOME}" \
+    -u $(id -u):$(id -g) \
+		--name vscode \
+		nsa/vscode
+}
+
+pompe_moi(){
+  domain=$1
+  root=$2
+  wget \
+       --recursive \
+       --no-clobber \
+       --page-requisites \
+       --html-extension \
+       --convert-links \
+       --restrict-file-names=windows \
+       --domains $domain \
+       --no-parent \
+       -e robots=off \
+          $root 
+
+}
+
+cdc(){
+  if [[ $# != 1 ]]; then
+    echo "need 1 param for folder to create and move to"
+    return 1
+  fi
+  local folder=$1
+  mkdir $1
+  cd $1
+}
+
+mirror-display(){
+  if [[ $# != 1 ]]; then
+    echo "need 1 param for monitor name"
+    return 1
+  fi
+	local monitor_name=$1
+  echo $monitor_name
+  
+  xrandr --output eDP1 --auto --primary --output $monitor_name --auto --same-as eDP1
+  retour=$?
+  return $retour
+}
+
+watchElixir(){
+
+  watchmedo shell-command --patterns="*.exs;*.ex;*.txt;*.json" --recursive --command="elixir *_test*" -W .
+}
+
+extend-display(){
+  if [[ $# != 1 ]]; then
+    echo "need 1 param for monitor name"
+    return 1
+  fi
+	local monitor_name=$1
+  echo $monitor_name
+
+  xrandr --output eDP1 --auto --primary --output $monitor_name --auto --right-of eDP1
+  retour=$?
+  return $retour
+}
+
+shutdown-display(){
+  if [[ $# != 1 ]]; then
+    echo "need 1 param for monitor name"
+    return 1
+  fi
+	local monitor_name=$1
+  xrandr --output eDP1 --auto --output $monitor_name --off
+}
+
+cassandra_demo(){
+  container_name="cassandra_demo"
+
+	del_stopped $container_name
+  docker run -d \
+    --name $container_name \
+    -p 9042:9042 \
+    -p 7199:7199 \
+    -v $HOME/tmp/$container_anem:/var/lib/cassandra \
+    cassandra:2.1.20
+}
+
+cqlsh(){
+
+  linked_container_name="cassandra_demo"
+  container_name="cassandra_demo_cqlsh"
+
+
+  docker run -it --rm \
+    --link cassandra_demo:cassandra \
+    cassandra:2.1.20 \
+    cqlsh cassandra
+}
+
+
+myrabbit(){
+
+	del_stopped myrabbit
+
+  docker run -d \
+  -p 5672:5672 \
+  -p 15672:15672 \
+  -e "HOME:${HOME}" \
+  -e RABBITMQ_ERLANG_COOKIE=SWQOKODSQALRPCLNMEQG \
+  -e RABBITMQ_DEFAULT_USER=rabbitmq \
+  -e RABBITMQ_DEFAULT_PASS=rabbitmq \
+  -e RABBITMQ_DEFAULT_VHOST=/ \
+  -v $HOME/Projects/dockerfiles/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins \
+  --hostname myrabbit \
+  --name myrabbit \
+  rabbitmq:3-management
+
+}
+

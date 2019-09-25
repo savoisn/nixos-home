@@ -14,6 +14,7 @@ set tabstop=2
 set shiftwidth=2
 "set softtabstop=22
 set expandtab
+set smarttab
 
 set encoding=utf-8
 set scrolloff=3
@@ -45,11 +46,8 @@ nnoremap <leader><space> :noh<cr>
 nnoremap <tab> %
 vnoremap <tab> %
 
-" Escape is to far away...
-:imap jj <Esc>
-
 set wrap
-set textwidth=76
+set textwidth=500
 set formatoptions=qrn1
 set colorcolumn=+1
 
@@ -78,7 +76,28 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
+" Close the current buffer
+map <leader>bd :Bclose<cr>
+
+" Close all the buffers
+map <leader>ba :bufdo bd<cr>
+
+" Useful mappings for managing tabs
+map <leader>tn :tabnew<cr>
+map <leader>to :tabonly<cr>
+map <leader>tc :tabclose<cr>
+map <leader>tm :tabmove 
+map <leader>t<leader> :tabnext 
+
+map 0 ^
+
+" spell checking
+" Pressing ,ss will toggle and untoggle spell checking
+map <leader>ss :setlocal spell!<cr>
+
+
 set background=dark
+
 colorscheme zenburn
 
 if exists('g:colors_name') && colors_name == 'zenburn'
@@ -110,6 +129,11 @@ nnoremap <leader>f :cwindow<cr>
 nnoremap <leader>p :CtrlP<cr>
 nnoremap <leader>t :CtrlPTag<cr>
 
+
+
+" nerdtree
+nnoremap <C-n> :NERDTreeToggle<cr>
+
 augroup FileType go
   au!
   au FileType go nmap <Leader>d <Plug>(go-def)
@@ -129,8 +153,3 @@ augroup END
 
 let g:go_fmt_command = "goimports"
 
-" Kill arrow keys
-noremap <Up> <nop>
-noremap <Down> <nop>
-noremap <Left> <nop>
-noremap <Right> <nop>
