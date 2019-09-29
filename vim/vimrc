@@ -42,6 +42,7 @@ set gdefault
 set incsearch
 set showmatch
 set hlsearch
+nnoremap <leader><leader> <C-^>
 nnoremap <leader><space> :noh<cr>
 nnoremap <tab> %
 vnoremap <tab> %

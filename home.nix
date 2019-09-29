@@ -1,39 +1,47 @@
 { pkgs, ... }:
 
+let 
+  myvim = (import ./nvim-custom-plugin.nix ) pkgs;
+in
 {
   imports = [
     ./tools
   ];
 
+
   nixpkgs.config.allowUnfree = true;
 
   home.packages = with pkgs; [
     acpi
-    htop
-    fortune
-    cowsay
-    ponysay
-    google-chrome
-    pasystray
+    ag
+    ansible
+    any-nix-shell
     arandr
-    pavucontrol
     blueman
-    xorg.xbacklight
+    brightnessctl
+    calibre
+    cowsay
+    elixir
+    fortune
+    google-chrome
+    htop
+    jetbrains.idea-ultimate
+    nodejs
+    pasystray
+    pavucontrol
+    pcmanfm
+    ponysay
+    qalculate-gtk
+    rox-filer
     slack-dark
     spotify
-    brightnessctl
-    any-nix-shell
     tdesktop
-    qalculate-gtk
-    vagrant
-    ansible
-    rox-filer
-    pcmanfm
-    xarchiver
     unzip
-    xclip
+    vagrant
     vscode
-    jetbrains.idea-ultimate
+    xorg.xbacklight
+    xarchiver
+    xclip
   ];
 
   xresources.properties = { 
@@ -69,22 +77,24 @@
     #};
 
     configure = {
-      #pathogen.pluginNames = with pkgs.vimPlugins; [
-      #  "colors-solarized"
-      #];
-      packages.myVimPackage = with pkgs.vimPlugins; {
-        start = [
-          zenburn
-          ctrlp
-          fugitive
-          vim-nix
-          vim-elixir
-          nerdtree
-        ];
-      };
+        packages.myVimPackage = with pkgs.vimPlugins // myvim.custom_plugins; {
+          start = [
+            zenburn
+            ctrlp
+            fugitive
+            vim-nix
+            vim-elixir
+            nerdtree
+            nerdcom
+            coc-nvim
+            coc-go
+            cocelixir
+          ];
+        };
 
-      customRC = builtins.readFile vim/vimrc;
-    };
+
+        customRC = builtins.readFile vim/vimrc;
+      };
   };
 
   programs.tmux = {
