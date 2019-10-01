@@ -36,6 +36,8 @@ in
     slack-dark
     spotify
     tdesktop
+    udisks2
+    udiskie
     unzip
     vagrant
     vscode
