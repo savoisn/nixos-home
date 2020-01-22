@@ -21,6 +21,11 @@ bright_down(){
 
 }
 
+mkcd(){
+  mkdir $1
+  cd $1
+}
+
 export DOCKER_REPO_PREFIX="nsa"
 
 dcFullRestart(){

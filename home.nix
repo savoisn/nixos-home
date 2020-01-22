@@ -11,6 +11,8 @@ in
 
   nixpkgs.config.allowUnfree = true;
 
+  home.file.".xprofile".source = ./xprofile;
+
   home.packages = with pkgs; [
     acpi
     ag
@@ -21,29 +23,55 @@ in
     brightnessctl
     calibre
     cowsay
+    discord
+    docker-compose
+    dotnet-sdk
+    dune
     elixir
+    exercism
+    feh
     fortune
+    fsharp 
+    gimp
+    gthumb
     google-chrome
     htop
+    imagemagick
+    inotify-tools
     jetbrains.idea-ultimate
+    nix-index
     nodejs
     pasystray
+    patchelf
     pavucontrol
     pcmanfm
+    pciutils
     ponysay
+    ocaml
+    opam
     qalculate-gtk
+    ranger
     rox-filer
+    simplescreenrecorder
+    shutter
     slack-dark
     spotify
+    steam-run
+    transmission-gtk
     tdesktop
     udisks2
     udiskie
     unzip
+    usbutils
+    file
     vagrant
     vscode
+    w3m
     xorg.xbacklight
     xarchiver
     xclip
+    yquake2-all-games
+    zip
   ];
 
   xresources.properties = { 
@@ -60,6 +88,8 @@ in
     "URxvt.iso14755" = "false";
     "URxvt.iso14755_52" = "false";
     "urxvt.perl-ext-common" = "default,resize-font";
+    "URxvt.keysym.Shift-Control-V" = "eval:paste_clipboard";
+    "URxvt.keysym.Shift-Control-C" = "eval:selection_to_clipboard";
   };
 
   programs.emacs = {
@@ -90,7 +120,10 @@ in
             nerdcom
             coc-nvim
             coc-go
-            cocelixir
+            #cocelixir
+            vim-markdown
+            markdown-preview
+            mixformat
           ];
         };
 
@@ -105,10 +138,12 @@ in
 
   programs.zsh = {
     enable = true;
-    shellAliases = { vim = "nvim"; };
+    shellAliases = { vim = "nvim"; dc = "docker-compose"; };
     initExtra =  ''
       any-nix-shell zsh --info-right | source /dev/stdin
       source ~/.zshrc_functions
+      export PATH=$PATH:~/bin
+      test -r /home/nico/.opam/opam-init/init.zsh && . /home/nico/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
     '';
   };
 
@@ -117,7 +152,7 @@ in
   programs.zsh.oh-my-zsh = {
     enable = true;
     theme = "candy";
-    plugins = [ "git" "sudo" "docker" "kubectl" "mix"];
+    plugins = [ "git" "sudo" "docker" "kubectl" "mix" "jump"];
   };
 
 
@@ -130,6 +165,10 @@ in
     enable = true;
     userName = "Nicolas Savois";
     userEmail = "nicolas.savois@gmail.com";
+    extraConfig = ''
+        [push]
+        default = current
+      '';
   };
 
   services.gpg-agent = {

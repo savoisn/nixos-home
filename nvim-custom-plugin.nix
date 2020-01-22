@@ -378,6 +378,30 @@ let
       sha256 = "07pzlmrds0w6hgndgh1mw2qnzm3pnc966d7b12vxjvhb064yz6ic";
     };
   };
+  mixformat = pkgs.vimUtils.buildVimPlugin {
+    name = "mixformat";
+    src = pkgs.fetchFromGitHub {
+      owner = "mhinz";
+      repo = "vim-mix-format";
+      rev = "2a30a8aee29ebc0961caac6e63ea9f554ba656ed";
+      sha256 = "1pcrb3walghvn31w33r0l2b7ampxddn58mv35y0r01p2cjq4b7gb";
+    };
+  };
+  markdown-preview = pkgs.vimUtils.buildVimPlugin {
+    name = "markdown-preview";
+    src = pkgs.fetchFromGitHub {
+      owner = "iamcco";
+      repo = "markdown-preview.nvim";
+      rev = "5c813eaf943ed7491ba855ad0cb563c31767debf";
+      sha256 = "094sxyna76vsw7gp8y6qwb7ff1p5ch4zbsm29mbndlw83b4d8yh2";
+    };
+  };
+
 in {
-  custom_plugins = { nerdcom = nerdcom; cocelixir = cocelixir; };
+  custom_plugins = { 
+    nerdcom = nerdcom; 
+    cocelixir = cocelixir; 
+    mixformat = mixformat;
+    markdown-preview = markdown-preview;
+  };
 }

@@ -14,6 +14,7 @@ set tabstop=2
 set shiftwidth=2
 "set softtabstop=22
 set expandtab
+
 set smarttab
 
 set encoding=utf-8
@@ -60,6 +61,8 @@ nnoremap ; :
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 
 nnoremap <leader>q gqip
+
+command W w
 
 " Toggle paste
 set pastetoggle=<F2>
@@ -129,8 +132,7 @@ nnoremap <leader>f :cwindow<cr>
 " ctrl-p
 nnoremap <leader>p :CtrlP<cr>
 nnoremap <leader>t :CtrlPTag<cr>
-
-
+let g:ctrlp_cmd = 'CtrlPMRU'
 
 " nerdtree
 nnoremap <C-n> :NERDTreeToggle<cr>
@@ -154,3 +156,14 @@ augroup END
 
 let g:go_fmt_command = "goimports"
 
+" Mix Format
+let g:mix_format_on_save = 1
+let g:mix_format_silent_errors = 1
+
+" Markdown
+let g:vim_markdown_folding_disabled = 1
+
+nnoremap <C-S> yiw:%s/<C-r>"/<C-r>"/gc<Left><Left><Left>
+vnoremap <C-S> y:%s/<C-r>"/<C-r>"/gc<Left><Left><Left>
+
+nmap <silent> <leader>n :silent :nohlsearch<cr>
