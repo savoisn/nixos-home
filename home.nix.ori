@@ -1,4 +1,4 @@
-{ pkgs, system, lib, python, ... }:
+{ pkgs, system, systemd, lib, python, ... }:
 
 let 
   myvim = (import ./nvim-custom-plugin.nix ) pkgs;
@@ -21,60 +21,39 @@ in
     any-nix-shell
     audacious
     arandr
-    asciidoctor
     #aws
-    awscli2
+    awscli
     #aws-sam-cli
     #mysamawscli
-    bind
     blueman
     brightnessctl
-    broot
     calibre
-    cdrkit
-    chromedriver
-    cloud-init
     cowsay
-    crystal
     discord
-    dhall
-    dhall-json
     docker-compose
     dotnet-sdk
     dune
     elixir
     exercism
     feh
-    ffmpeg-full
     fortune
     fsharp 
-    gcc
     gimp
     gitkraken
-    gnumake    
+    gradle
+    gthumb
     go
     google-chrome
-    gphoto2
-    gradle
-    gromit-mpx
-    gthumb
     htop
     imagemagick
-    inkscape
     inotify-tools
     jetbrains.idea-ultimate
     jdk11
-    kind
-    kubectl
     kotlin
-    lz4
     maven
     nix-index
     nix-tree
     nodejs
-    pamix
-    pamixer
-    paprefs
     pasystray
     patchelf
     pavucontrol
@@ -82,44 +61,35 @@ in
     pciutils
     pgmanage
     ponysay
-    portaudio
-    pulsemixer
     python38Full
     python38Packages.pip
     pythonFull
     obs-studio
-    obs-v4l2sink
     ocaml
     opam
-    packer
     qalculate-gtk
     ranger
-    remarkable-toolchain
     rox-filer
-    rustup
-    skaffold
     simplescreenrecorder
     shutter
     slack-dark
     spotify
     teams
     terraform
-    tlaplus
     transmission-gtk
     tdesktop
+    udisks2
+    udiskie
     unzip
     usbutils
     file
     vagrant
-    vlc
-    vscode-extensions.ms-vsliveshare.vsliveshare
     vscode-with-extensions
     w3m
     xorg.xbacklight
     xarchiver
     xclip
     xorg.xev
-    youtubeDL
     zip
   ];
 
@@ -162,7 +132,6 @@ in
           start = [
             zenburn
             ctrlp
-            dhall-vim
             fugitive
             vim-nix
             vim-elixir
@@ -176,7 +145,6 @@ in
             markdown-preview
             mixformat
             vim-terraform
-            crystal
           ];
         };
 
@@ -195,13 +163,8 @@ in
     initExtra =  ''
       any-nix-shell zsh --info-right | source /dev/stdin
       source ~/.zshrc_functions
-      export PATH=$PATH:~/bin:~/bin/bats/bin
-      source <(kubectl completion zsh)
-      alias k=kubectl
-      complete -F __start_kubectl k
+      export PATH=$PATH:~/bin
       test -r /home/nico/.opam/opam-init/init.zsh && . /home/nico/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
-      PROMPT='%{$fg_bold[green]%}%n@%m %{$fg[blue]%}%D{[%X]}%{$reset_color%} %{$fg_bold[red]%}$(aws_prompt_info)%{$reset_color%} %{$fg[white]%}[%~]%{$reset_color%} $(git_prompt_info)
-%{$fg[blue]%}->%{$fg_bold[blue]%} %#%{$reset_color%}  '
     '';
     envExtra = ''
       GOPATH='~/gopath'
@@ -213,7 +176,7 @@ in
   programs.zsh.oh-my-zsh = {
     enable = true;
     theme = "candy";
-    plugins = [ "git" "sudo" "docker" "kubectl" "mix" "jump" "golang" "aws" ];
+    plugins = [ "git" "sudo" "docker" "kubectl" "mix" "jump" "golang" ];
   };
 
 
@@ -225,36 +188,22 @@ in
     enable = true;
     userName = "Nicolas Savois";
     userEmail = "nicolas.savois@gmail.com";
-    extraConfig = {
-      push = {
-        default = "current";
-      };
-      credential.helper = "cache";
-
-    };
-    #extraConfig = ''
-        #[push]
-        #default = current
-      #'';
+    extraConfig = ''
+        [push]
+        default = current
+      '';
   };
 
-  #programs.shadow-client = {
-    #enable = true;
-    #channel = "preprod";
-  #};
+  programs.shadow-client = {
+    enable = true;
+    channel = "preprod";
+  };
 
 
   services.gpg-agent = {
     enable = true;
     defaultCacheTtl = 1800;
     enableSshSupport = true;
-  };
-
-  services.udiskie = {
-    enable = true;
-    automount = true; 
-    notify = true;
-    tray = "auto";
   };
 
   programs.home-manager = {

@@ -396,6 +396,24 @@ let
       sha256 = "094sxyna76vsw7gp8y6qwb7ff1p5ch4zbsm29mbndlw83b4d8yh2";
     };
   };
+  crystal = pkgs.vimUtils.buildVimPlugin {
+    name = "crystal";
+    src = pkgs.fetchFromGitHub {
+      owner = "vim-crystal";
+      repo = "vim-crystal";
+      rev = "bc4f115de69fdeb4419e2cbef1981f0b39c6d972";
+      sha256 = "17qr5rbchpgh75g14i5m899zp56c4zkj0yaj0h0p4x184xkjrxl3";
+    };
+  };
+  svelte = pkgs.vimUtils.buildVimPlugin {
+    name = "svelte";
+    src = pkgs.fetchFromGitHub {
+      owner = "evanleck";
+      repo = "vim-svelte";
+      rev = "f63fa77d621b25092081cce815effd7fbc169113";
+      sha256 = "0j7j6ibrylv32y0vw002yayfg7xia59nm2952bhbwlkl6m2cwnz9";
+    };
+  };
 
 in {
   custom_plugins = { 
@@ -403,5 +421,7 @@ in {
     cocelixir = cocelixir; 
     mixformat = mixformat;
     markdown-preview = markdown-preview;
+    crystal = crystal;
+    svelte = svelte;
   };
 }
