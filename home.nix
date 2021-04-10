@@ -7,6 +7,8 @@ in
   imports = [
     ./tools
     (fetchGit { url = "https://github.com/Elyhaka/shadow-nix"; ref = "drv-v0.14.0"; } + "/home-manager.nix")
+        #(fetchGit { url = "https://github.com/NicolasGuilloux/shadow-nix"; ref = "v1.0.0"; } + "/import/home-manager.nix")
+
 
   ];
 
@@ -17,15 +19,13 @@ in
   home.packages = with pkgs; [
     acpi
     ag
+    android-studio
     ansible
     any-nix-shell
     audacious
     arandr
     asciidoctor
-    #aws
     awscli2
-    #aws-sam-cli
-    #mysamawscli
     bind
     blueman
     brightnessctl
@@ -41,11 +41,12 @@ in
     dhall-json
     docker-compose
     dotnet-sdk
-    dune
+    dune-release
     elixir
     exercism
     feh
     ffmpeg-full
+    flutter
     fortune
     fsharp 
     gcc
@@ -63,7 +64,7 @@ in
     inkscape
     inotify-tools
     jetbrains.idea-ultimate
-    jdk11
+    jdk
     kind
     kubectl
     kotlin
@@ -91,8 +92,7 @@ in
     obs-v4l2sink
     ocaml
     opam
-    packer
-    qalculate-gtk
+    packer qalculate-gtk
     ranger
     remarkable-toolchain
     rox-filer
@@ -103,7 +103,8 @@ in
     slack-dark
     spotify
     teams
-    terraform
+    terraform_0_14
+    tig
     tlaplus
     transmission-gtk
     tdesktop
@@ -157,9 +158,8 @@ in
     #  number = true;
     #};
 
-    configure = {
-        packages.myVimPackage = with pkgs.vimPlugins // myvim.custom_plugins; {
-          start = [
+    plugins = 
+        with pkgs.vimPlugins // myvim.custom_plugins; [
             zenburn
             ctrlp
             dhall-vim
@@ -178,11 +178,7 @@ in
             vim-terraform
             crystal
           ];
-        };
-
-
-        customRC = builtins.readFile vim/vimrc;
-      };
+      extraConfig = builtins.readFile vim/vimrc;
   };
 
   programs.tmux = {
@@ -200,8 +196,10 @@ in
       alias k=kubectl
       complete -F __start_kubectl k
       test -r /home/nico/.opam/opam-init/init.zsh && . /home/nico/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
+      #export CLOUD_SDK_HOME="${pkgs.google-cloud-sdk}"
+      #source "$CLOUD_SDK_HOME/google-cloud-sdk/completion.zsh.inc"
       PROMPT='%{$fg_bold[green]%}%n@%m %{$fg[blue]%}%D{[%X]}%{$reset_color%} %{$fg_bold[red]%}$(aws_prompt_info)%{$reset_color%} %{$fg[white]%}[%~]%{$reset_color%} $(git_prompt_info)
-%{$fg[blue]%}->%{$fg_bold[blue]%} %#%{$reset_color%}  '
+%{$fg[blue]%}->%{$fg_bold[blue]%} %#%{$reset_color%} '
     '';
     envExtra = ''
       GOPATH='~/gopath'
@@ -213,7 +211,7 @@ in
   programs.zsh.oh-my-zsh = {
     enable = true;
     theme = "candy";
-    plugins = [ "git" "sudo" "docker" "kubectl" "mix" "jump" "golang" "aws" ];
+    plugins = [ "git" "sudo" "docker" "kubectl" "mix" "jump" "golang" "aws" "terraform" ];
   };
 
 
