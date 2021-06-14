@@ -6,11 +6,10 @@ in
 {
   imports = [
     ./tools
-    (fetchGit { url = "https://github.com/Elyhaka/shadow-nix"; ref = "drv-v0.14.0"; } + "/home-manager.nix")
-        #(fetchGit { url = "https://github.com/NicolasGuilloux/shadow-nix"; ref = "v1.0.0"; } + "/import/home-manager.nix")
-
-
+    (fetchGit { url = "https://github.com/NicolasGuilloux/shadow-nix"; ref = "master"; } + "/import/home-manager.nix")
   ];
+
+
 
   nixpkgs.config.allowUnfree = true;
 
@@ -22,8 +21,10 @@ in
     android-studio
     ansible
     any-nix-shell
-    audacious
     arandr
+    arduino
+    audacious
+    audacity
     asciidoctor
     awscli2
     bind
@@ -70,6 +71,7 @@ in
     kotlin
     lz4
     maven
+    ngrok
     nix-index
     nix-tree
     nodejs
@@ -82,6 +84,7 @@ in
     pcmanfm
     pciutils
     pgmanage
+    platformio
     ponysay
     portaudio
     pulsemixer
@@ -102,9 +105,15 @@ in
     shutter
     slack-dark
     spotify
+    taskwarrior
+    taskwarrior-tui
+    vit
+    timewarrior
+
     teams
     terraform_0_14
     tig
+    tightvnc
     tlaplus
     transmission-gtk
     tdesktop
@@ -175,7 +184,12 @@ in
             vim-elm-syntax
             markdown-preview
             mixformat
+            vim-surround
             vim-terraform
+            telescope-nvim
+            #telescope-symbols-nvim
+            telescope-fzy-native-nvim
+            nlua-nvim
             crystal
           ];
       extraConfig = builtins.readFile vim/vimrc;
@@ -194,6 +208,7 @@ in
       export PATH=$PATH:~/bin:~/bin/bats/bin
       source <(kubectl completion zsh)
       alias k=kubectl
+      alias create-typescript-react=npx create-react-app --template typescript
       complete -F __start_kubectl k
       test -r /home/nico/.opam/opam-init/init.zsh && . /home/nico/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
       #export CLOUD_SDK_HOME="${pkgs.google-cloud-sdk}"
@@ -202,7 +217,7 @@ in
 %{$fg[blue]%}->%{$fg_bold[blue]%} %#%{$reset_color%} '
     '';
     envExtra = ''
-      GOPATH='~/gopath'
+      GOPATH='/home/nico/.gopath'
     '';
   };
 
@@ -211,7 +226,7 @@ in
   programs.zsh.oh-my-zsh = {
     enable = true;
     theme = "candy";
-    plugins = [ "git" "sudo" "docker" "kubectl" "mix" "jump" "golang" "aws" "terraform" ];
+    plugins = [ "git" "sudo" "docker" "kubectl" "mix" "jump" "golang" "aws" "terraform" "taskwarrior" ];
   };
 
 
@@ -236,10 +251,10 @@ in
       #'';
   };
 
-  #programs.shadow-client = {
-    #enable = true;
-    #channel = "preprod";
-  #};
+  programs.shadow-client = {
+    enable = true;
+    channel = "preprod";
+  };
 
 
   services.gpg-agent = {

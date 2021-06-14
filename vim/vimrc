@@ -159,8 +159,6 @@ augroup FileType go
   au FileType go nmap <Leader>gb <Plug>(go-doc-browser)
 augroup END
 
-let g:go_fmt_command = "goimports"
-
 " Mix Format
 let g:mix_format_on_save = 1
 let g:mix_format_silent_errors = 1
@@ -172,3 +170,15 @@ nnoremap <C-S> yiw:%s/<C-r>"/<C-r>"/gc<Left><Left><Left>
 vnoremap <C-S> y:%s/<C-r>"/<C-r>"/gc<Left><Left><Left>
 
 nmap <silent> <leader>n :silent :nohlsearch<cr>
+
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+inoremap <silent><expr> <c-space> coc#refresh()
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+
+
+nnoremap <nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+nnoremap <nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+inoremap <nowait><expr> <C-f> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
+inoremap <nowait><expr> <C-b> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
+
