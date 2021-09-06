@@ -6,7 +6,7 @@ in
 {
   imports = [
     ./tools
-    (fetchGit { url = "https://github.com/NicolasGuilloux/shadow-nix"; ref = "master"; } + "/import/home-manager.nix")
+    #(fetchGit { url = "https://github.com/NicolasGuilloux/shadow-nix"; ref = "v1.0.3"; } + "/import/home-manager.nix")
   ];
 
 
@@ -19,6 +19,7 @@ in
     acpi
     ag
     android-studio
+    android-tools
     ansible
     any-nix-shell
     arandr
@@ -37,6 +38,7 @@ in
     cloud-init
     cowsay
     crystal
+    dart
     discord
     dhall
     dhall-json
@@ -66,9 +68,11 @@ in
     inotify-tools
     jetbrains.idea-ultimate
     jdk
+    jq
     kind
     kubectl
     kotlin
+    librecad
     lz4
     maven
     ngrok
@@ -84,19 +88,19 @@ in
     pcmanfm
     pciutils
     pgmanage
-    platformio
     ponysay
     portaudio
+    postman
     pulsemixer
     python38Full
     python38Packages.pip
     pythonFull
     obs-studio
-    obs-v4l2sink
     ocaml
     opam
     packer qalculate-gtk
     ranger
+    rclone
     remarkable-toolchain
     rox-filer
     rustup
@@ -105,11 +109,12 @@ in
     shutter
     slack-dark
     spotify
+    sqlite
+    sqlite-utils
     taskwarrior
     taskwarrior-tui
     vit
     timewarrior
-
     teams
     terraform_0_14
     tig
@@ -182,6 +187,7 @@ in
             #cocelixir
             vim-markdown
             vim-elm-syntax
+            vim-jsx-typescript
             markdown-preview
             mixformat
             vim-surround
@@ -251,10 +257,10 @@ in
       #'';
   };
 
-  programs.shadow-client = {
-    enable = true;
-    channel = "preprod";
-  };
+  #programs.shadow-client = {
+    ##enable = true;
+    #channel = "preprod";
+  #};
 
 
   services.gpg-agent = {

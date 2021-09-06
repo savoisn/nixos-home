@@ -1,11 +1,11 @@
 #!/bin/sh
 lock() {
-    i3lock
+  ~/Projects/nixos-home/tools/i3-lock/lock.sh
 }
 
 case "$1" in
     lock)
-        i3lock -i ~/.config/i3/wallpaper.png
+        ~/Projects/nixos-home/tools/i3-lock/lock.sh
         ;;
     logout)
         i3-msg exit
