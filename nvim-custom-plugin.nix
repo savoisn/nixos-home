@@ -374,8 +374,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "amiralies";
       repo = "coc-elixir";
-      rev = "6c3a0646a895c4f788ffe2ab29800e08a5bfeca0";
-      sha256 = "07pzlmrds0w6hgndgh1mw2qnzm3pnc966d7b12vxjvhb064yz6ic";
+      rev= "0550cd66834d05963dd20ede99c047f85382ce45";
+      sha256= "13l4qfnbwza89cd708dmy9fa3df8mbr9b93vakkgm2n6kc3a3nzy";
     };
   };
   mixformat = pkgs.vimUtils.buildVimPlugin {

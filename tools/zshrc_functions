@@ -622,8 +622,10 @@ mdp(){
     -v /etc/passwd:/etc/passwd \
     -e "HOME" \
     -u $(id -u):$(id -g) \
+    -e COLUMNS="`tput cols`" \
+    -e LINES="`tput lines`" \
     --name mdp \
-    nsa/mdp:v0.2 "/data/${file}"
+    nsa/mdp:latest "/data/${file}"
 }
 
 mutt(){

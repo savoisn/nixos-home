@@ -2,6 +2,8 @@
 
 let 
   myvim = (import ./nvim-custom-plugin.nix ) pkgs;
+  pop = pkgs.callPackage ./tools/pop {};
+
 in
 {
   imports = [
@@ -39,19 +41,23 @@ in
     cowsay
     crystal
     dart
+    dbeaver
     discord
     dhall
     dhall-json
     docker-compose
-    dotnet-sdk
+    dotnet-sdk_3
+    dpkg
     dune-release
     elixir
+    erlang
     exercism
     feh
     ffmpeg-full
     flutter
     fortune
     fsharp 
+    galculator
     gcc
     gimp
     gitkraken
@@ -75,6 +81,7 @@ in
     librecad
     lz4
     maven
+    mpv
     ngrok
     nix-index
     nix-tree
@@ -101,9 +108,12 @@ in
     packer qalculate-gtk
     ranger
     rclone
+    rebar3
     remarkable-toolchain
     rox-filer
     rustup
+    s3cmd
+    scrcpy
     skaffold
     simplescreenrecorder
     shutter
@@ -133,6 +143,7 @@ in
     xorg.xbacklight
     xarchiver
     xclip
+    xorg.xhost
     xorg.xev
     youtubeDL
     zip
@@ -174,29 +185,29 @@ in
 
     plugins = 
         with pkgs.vimPlugins // myvim.custom_plugins; [
-            zenburn
+            coc-nvim
+            coc-go
+            crystal
             ctrlp
             dhall-vim
             fugitive
-            vim-nix
-            vim-elixir
-            nerdtree
-            nerdcom
-            coc-nvim
-            coc-go
-            #cocelixir
-            vim-markdown
-            vim-elm-syntax
-            vim-jsx-typescript
             markdown-preview
             mixformat
+            nerdtree
+            nerdcom
+            nvim-treesitter
+            nlua-nvim
+            popup-nvim
+            telescope-nvim
+            telescope-fzy-native-nvim
+            vim-elixir
+            vim-elm-syntax
+            vim-jsx-typescript
+            vim-markdown
+            vim-nix
             vim-surround
             vim-terraform
-            telescope-nvim
-            #telescope-symbols-nvim
-            telescope-fzy-native-nvim
-            nlua-nvim
-            crystal
+            zenburn
           ];
       extraConfig = builtins.readFile vim/vimrc;
   };
@@ -249,6 +260,7 @@ in
         default = "current";
       };
       credential.helper = "cache";
+      init.defaultBranch = "main";
 
     };
     #extraConfig = ''
