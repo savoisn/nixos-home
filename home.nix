@@ -53,6 +53,7 @@ in
     erlang
     exercism
     feh
+    file
     ffmpeg-full
     flutter
     fortune
@@ -79,6 +80,7 @@ in
     kubectl
     kotlin
     librecad
+    lua
     lz4
     maven
     mpv
@@ -86,6 +88,8 @@ in
     nix-index
     nix-tree
     nodejs
+    nodePackages.ganache-cli
+    ntfs3g
     pamix
     pamixer
     paprefs
@@ -103,6 +107,7 @@ in
     python38Packages.pip
     pythonFull
     obs-studio
+    obsidian
     ocaml
     opam
     packer qalculate-gtk
@@ -114,6 +119,7 @@ in
     rustup
     s3cmd
     scrcpy
+    screenkey
     skaffold
     simplescreenrecorder
     shutter
@@ -123,7 +129,6 @@ in
     sqlite-utils
     taskwarrior
     taskwarrior-tui
-    vit
     timewarrior
     teams
     terraform_0_14
@@ -132,25 +137,29 @@ in
     tlaplus
     transmission-gtk
     tdesktop
+    udiskie
     unzip
+    upower
     usbutils
-    file
     vagrant
+    vit
     vlc
-    vscode-extensions.ms-vsliveshare.vsliveshare
-    vscode-with-extensions
+    #vscode-extensions.ms-vsliveshare.vsliveshare
+    #vscode-with-extensions
     w3m
     xorg.xbacklight
     xarchiver
     xclip
+    xorg.xkbcomp
     xorg.xhost
     xorg.xev
+    xxkb
     youtubeDL
     zip
   ];
 
   xresources.properties = { 
-    "xterm*background" = "black"; 
+    "xterm*background" = "darkgrey"; 
     "xterm*foreground" = "lightgray"; 
     "xterm*faceName" = "monospace:pixelsize=14";
     "*background" = "black";
@@ -187,10 +196,12 @@ in
         with pkgs.vimPlugins // myvim.custom_plugins; [
             coc-nvim
             coc-go
+            coc-lua
             crystal
             ctrlp
             dhall-vim
             fugitive
+            harpoon
             markdown-preview
             mixformat
             nerdtree
@@ -202,9 +213,11 @@ in
             telescope-fzy-native-nvim
             vim-elixir
             vim-elm-syntax
+            vim-fsharp
             vim-jsx-typescript
             vim-markdown
             vim-nix
+            vim-solidity
             vim-surround
             vim-terraform
             zenburn
@@ -279,13 +292,6 @@ in
     enable = true;
     defaultCacheTtl = 1800;
     enableSshSupport = true;
-  };
-
-  services.udiskie = {
-    enable = true;
-    automount = true; 
-    notify = true;
-    tray = "auto";
   };
 
   programs.home-manager = {

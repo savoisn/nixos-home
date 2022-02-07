@@ -4,6 +4,7 @@
     ./tmux.nix
     ./zsh.nix
     ./urxvt.nix
+    ./layout.nix
   ];
 }
 

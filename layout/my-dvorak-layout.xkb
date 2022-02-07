@@ -1,0 +1,220 @@
+// https://wiki.linuxquestions.org/wiki/List_of_keysyms
+xkb_keymap {
+  xkb_keycodes  { include "evdev+aliases(qwerty)"	};
+  xkb_types     { include "complete"	};
+  xkb_compat    { include "complete"
+    interpret ISO_Next_Group { action = LockGroup(group=+1); };
+    interpret ISO_Prev_Group { action = LockGroup(group=-1); };
+  };
+  xkb_symbols   { include "pc+us+fr:2+inet(evdev)+eurosign(e)"	
+    name[1] = "EN";     // group 1
+    name[2] = "DV";     // group 2
+    name[3] = "FR";     // group 3
+
+
+    key.type = "ALPHABETIC";
+    key <TLDE> { 
+      [       dollar,        asciitilde, dead_grave, dead_tilde      ],
+      [ asciitilde, asciitilde]
+    };
+
+    key <AE01> { 
+      [          plus,       1               ],
+      [1,exclam]
+    };
+    key <AE02> { 
+      [          bracketleft,        2               ],
+      [2,at]
+    };
+    key <AE03> { 
+      [          braceleft,  3       ],
+      [3,numbersign]
+    };
+    key <AE04> { 
+      [          parenleft,  4               ],
+      [4,dollar]
+    };
+    key <AE05> { 
+      [          ampersand,      5               ],
+      [5,percent]
+    };
+    key <AE06> { 
+      [          equal,  6, dead_circumflex, dead_circumflex ],
+      [6,asciicircum]
+    };
+    key <AE07> { 
+      [          parenright, 7       ],
+      [7,ampersand]
+    };
+    key <AE08> { 
+      [          braceright, 8       ],
+      [8,asterisk]
+    };
+    key <AE09> { 
+      [          bracketright,       9,  dead_grave],
+      [9,parenleft]
+    };
+    key <AE10> { 
+      [          asterisk,   0       ],
+      [ 0,parenright ]
+    };
+    key <AE11> { 
+      [ exclam,      percent ],
+      [ minus, underscore]
+    };
+    key <AE12> { 
+      [ bar, grave,  dead_tilde],
+      [ equal,plus]
+    };
+
+    key <AD01> { 
+      [ semicolon,  colon, dead_acute, dead_diaeresis],
+      [ q,Q ]
+    };
+    key <AD02> { 
+      [ comma,  less,   dead_cedilla, dead_caron ],
+      [ w,W ]
+    };
+    key <AD03> { 
+      [ period, greater, dead_abovedot, periodcentered ],
+      [e,E]
+    };
+    key <AD04> { 
+      [          p,  P               ],
+      [r,R]
+    };
+    key <AD05> { 
+      [          y,  Y               ],
+      [t,T]
+    };
+    key <AD06> { 
+      [          f,  F               ],
+      [y,Y]
+    };
+    key <AD07> { 
+      [          g,  G               ],
+      [u,U]
+    };
+    key <AD08> { 
+      [          c,  C               ],
+      [i,I]
+    };
+    key <AD09> { 
+      [          r,  R               ],
+      [o,O]
+    };
+    key <AD10> { 
+      [          l,  L               ],
+      [p,P]
+    };
+    key <AD11> { 
+      [      slash,  question        ],
+      [bracketleft,braceleft]
+    };
+    key <AD12> { 
+      [      at,     asciicircum             ],
+      [bracketright,braceright]
+    };
+
+    key <AC01> { 
+      [          a,  A               ],
+      [a,A]
+    };
+    key <AC02> { 
+      [          o,  O               ],
+      [s,S]
+    };
+    key <AC03> { 
+      [          e,  E               ],
+      [d,D]
+    };
+    key <AC04> { 
+      [          u,  U               ],
+      [f,F]
+    };
+    key <AC05> { 
+      [          i,  I               ],
+      [g,G]
+    };
+    key <AC06> { 
+      [          d,  D               ],
+      [h,H]
+    };
+    key <AC07> { 
+      [          h,  H               ],
+      [j,J]
+    };
+    key <AC08> { 
+      [          t,  T               ],
+      [k,K]
+    };
+    key <AC09> { 
+      [          n,  N               ],
+      [l,L]
+    };
+    key <AC10> { 
+      [          s,  S               ],
+      [semicolon,colon]
+    };
+    key <AC11> { 
+      [      minus,  underscore      ],
+      [apostrophe,quotedbl]
+    };
+
+    key <AB01> { 
+      [   apostrophe,        quotedbl, dead_ogonek, dead_doubleacute ],
+      [z,Z]
+    };
+    key <AB02> { 
+      [          q,  Q               ],
+      [x,X]
+    };
+    key <AB03> { 
+      [          j,  J               ],
+      [c,C]
+    };
+    key <AB04> { 
+      [          k,  K               ],
+      [v,V]
+    };
+    key <AB05> { 
+      [          x,  X               ],
+      [b,B]
+    };
+    key <AB06> { 
+      [          b,  B               ],
+      [n,N]
+    };
+    key <AB07> { 
+      [          m,  M               ],
+      [m,M]
+    };
+    key <AB08> { 
+      [          w,  W               ],
+      [comma,less]
+    };
+    key <AB09> { 
+      [          v,  V               ],
+      [period,greater]
+    };
+    key <AB10> { 
+      [          z,  Z               ],
+      [slash,question]
+    };
+
+    key <BKSL> { 
+      [  backslash,  numbersign             ],
+      [backslash,bar]
+    };
+
+    // key <CAPS> { [ Shift_Lock ] };
+    // modifier_map Shift { Shift_Lock };
+
+    key.type = "TWO_LEVEL";
+    key <LFSH> { [ Shift_L, ISO_Prev_Group ] };
+    key <RTSH> { [ Shift_R, ISO_Next_Group ] };
+
+
+  };
+  xkb_geometry  { include "pc(pc104)"	};
+};

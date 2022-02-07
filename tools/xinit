@@ -1,0 +1,1 @@
+xkbcomp .xkb/my-dvorak-layout.xkb $DISPLAY
