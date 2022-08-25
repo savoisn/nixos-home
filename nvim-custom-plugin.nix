@@ -369,13 +369,13 @@ let
       sha256 = "0s862kzhvv9qpr7gxd3h52hczjvm55zyff5qn0z5095072pr3wjx";
     };
   };
-  cocelixir = pkgs.vimUtils.buildVimPlugin {
+  coc-elixir = pkgs.vimUtils.buildVimPlugin {
     name = "cocelixir";
     src = pkgs.fetchFromGitHub {
-      owner = "amiralies";
+      owner = "elixir-lsp";
       repo = "coc-elixir";
-      rev= "0550cd66834d05963dd20ede99c047f85382ce45";
-      sha256= "13l4qfnbwza89cd708dmy9fa3df8mbr9b93vakkgm2n6kc3a3nzy";
+      rev= "a48b9c8fd8651fc3886b16f5c2fc367d91f4cffc";
+      sha256= "xHCX3KWtA2+YrGRgua+vdI+8/yEJQjnZS0u82eHhuqw=";
     };
   };
   mixformat = pkgs.vimUtils.buildVimPlugin {
@@ -414,14 +414,35 @@ let
       sha256 = "0j7j6ibrylv32y0vw002yayfg7xia59nm2952bhbwlkl6m2cwnz9";
     };
   };
+  ember = pkgs.vimUtils.buildVimPlugin {
+    name = "ember";
+    src = pkgs.fetchFromGitHub {
+      owner = "joukevandermaas";
+      repo = "vim-ember-hbs";
+      rev = "c47e1958a6c190c9d79ac66cb812f1a1d3b4e968";
+      sha256 = "AypAVARFyhoT/zTtkluZnE6TsWV3ydv4h9EVI1GwXSs=";
+    };
+  };
+  vlang = pkgs.vimUtils.buildVimPlugin {
+    name = "vlang";
+    src = pkgs.fetchFromGitHub {
+      owner = "ollykel";
+      repo = "v-vim";
+      rev = "1dc1388bafb89072f8349dbd96f9462ae22237cb";
+      sha256 = "AJqSUK05pq//0Nw331oTRUUrm/sO8eInTRYgvDM3i+w=";
+    };
+  };
+
 
 in {
   custom_plugins = { 
     nerdcom = nerdcom; 
-    cocelixir = cocelixir; 
+    coc-elixir = coc-elixir; 
     mixformat = mixformat;
     markdown-preview = markdown-preview;
     crystal = crystal;
     svelte = svelte;
+    ember = ember;
+    vlang = vlang;
   };
 }

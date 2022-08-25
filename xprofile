@@ -3,4 +3,4 @@ xrandr --output eDP-1 --mode 1920x1080 --dpi 96 || true
 
 export GDK_DPI_SCALE=1
 
-xkbcomp .xkb/my-dvorak-layout.xkb $DISPLAY
+xkbcomp ~/.xkb/my-dvorak-layout.xkb $DISPLAY

@@ -1,0 +1,64 @@
+---
+session:
+  name: "zellij" # a string, that names the session
+  attach: true # default `true`. If session exists, re-attach.
+template:
+    direction: Horizontal
+    parts:
+      - direction: Vertical  # part 1
+        borderless: true
+        split_size:
+          Fixed: 1
+        run:
+          plugin:
+            location: "zellij:tab-bar"
+      - direction: Vertical # part 2
+        body: true
+      - direction: Vertical # part 3
+        borderless: true
+        split_size:
+          Fixed: 2
+        run:
+          plugin: 
+            location: "zellij:status-bar"
+              #Projects/nixos-home/tools/zellij-compact-status.wasm
+
+tabs:
+  - direction: Vertical
+    parts:
+      - direction: Horizontal
+        parts:
+          - direction: Vertical
+          - direction: Vertical
+      - direction: Horizontal
+        parts:
+          - direction: Vertical
+          - direction: Vertical
+          - direction: Vertical
+            run:
+              command: {cmd: htop, args: ["-C"]}
+  - direction: Vertical
+    focus: true
+    parts:
+      - direction: Horizontal
+        #run:
+          #command: {cmd: nvim}
+        focus: true
+        split_size:
+          Percent: 60
+      - direction: Horizontal
+        parts:
+          - direction: Vertical
+          - direction: Vertical
+
+  - direction: Horizontal
+    parts:
+      - direction: Vertical
+      - direction: Vertical
+        split_size:
+          Percent: 30
+        run:
+          plugin: 
+            location: "zellij:pomodoro"
+
+

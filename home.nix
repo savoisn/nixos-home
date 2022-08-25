@@ -2,7 +2,6 @@
 
 let 
   myvim = (import ./nvim-custom-plugin.nix ) pkgs;
-  pop = pkgs.callPackage ./tools/pop {};
 
 in
 {
@@ -11,7 +10,9 @@ in
     #(fetchGit { url = "https://github.com/NicolasGuilloux/shadow-nix"; ref = "v1.0.3"; } + "/import/home-manager.nix")
   ];
 
-
+  nixpkgs.config.permittedInsecurePackages = [
+    "electron-13.6.9"
+  ];
 
   nixpkgs.config.allowUnfree = true;
 
@@ -19,7 +20,8 @@ in
 
   home.packages = with pkgs; [
     acpi
-    ag
+    silver-searcher
+    alacritty
     android-studio
     android-tools
     ansible
@@ -43,6 +45,7 @@ in
     dart
     dbeaver
     discord
+    dive
     dhall
     dhall-json
     docker-compose
@@ -52,8 +55,11 @@ in
     elixir
     erlang
     exercism
+    fasd
     feh
     file
+    fira-mono
+    fish
     ffmpeg-full
     flutter
     fortune
@@ -75,6 +81,7 @@ in
     inotify-tools
     jetbrains.idea-ultimate
     jdk
+    jo
     jq
     kind
     kubectl
@@ -85,10 +92,10 @@ in
     maven
     mpv
     ngrok
+    nushell
     nix-index
     nix-tree
     nodejs
-    nodePackages.ganache-cli
     ntfs3g
     pamix
     pamixer
@@ -115,8 +122,9 @@ in
     rclone
     rebar3
     remarkable-toolchain
-    rox-filer
+    rlwrap
     rustup
+    rox-filer
     s3cmd
     scrcpy
     screenkey
@@ -127,13 +135,14 @@ in
     spotify
     sqlite
     sqlite-utils
+    sqlitebrowser
+    starship
     taskwarrior
     taskwarrior-tui
     timewarrior
     teams
     terraform_0_14
     tig
-    tightvnc
     tlaplus
     transmission-gtk
     tdesktop
@@ -143,9 +152,11 @@ in
     usbutils
     vagrant
     vit
+    vlang
     vlc
     #vscode-extensions.ms-vsliveshare.vsliveshare
     #vscode-with-extensions
+    watchman
     w3m
     xorg.xbacklight
     xarchiver
@@ -154,7 +165,8 @@ in
     xorg.xhost
     xorg.xev
     xxkb
-    youtubeDL
+    youtube-dl
+    zellij
     zip
   ];
 
@@ -177,7 +189,7 @@ in
   };
 
   programs.emacs = {
-    enable = true;
+    enable = false;
     extraPackages = epkgs: [
       epkgs.nix-mode
       epkgs.magit
@@ -195,11 +207,15 @@ in
     plugins = 
         with pkgs.vimPlugins // myvim.custom_plugins; [
             coc-nvim
+            coc-rls
             coc-go
             coc-lua
+            coc-elixir
+            coc-tsserver
             crystal
             ctrlp
             dhall-vim
+            ember
             fugitive
             harpoon
             markdown-preview
@@ -220,6 +236,7 @@ in
             vim-solidity
             vim-surround
             vim-terraform
+            vlang
             zenburn
           ];
       extraConfig = builtins.readFile vim/vimrc;
@@ -235,7 +252,7 @@ in
     initExtra =  ''
       any-nix-shell zsh --info-right | source /dev/stdin
       source ~/.zshrc_functions
-      export PATH=$PATH:~/bin:~/bin/bats/bin
+      export PATH=$PATH:~/bin:~/bin/bats/bin:~/.mix/escripts
       source <(kubectl completion zsh)
       alias k=kubectl
       alias create-typescript-react=npx create-react-app --template typescript
@@ -282,10 +299,100 @@ in
       #'';
   };
 
+  programs.vscode = {
+    enable = true;
+    package = pkgs.vscodium;    # You can skip this if you want to use the unfree version
+    extensions = with pkgs.vscode-extensions; [
+      # Some example extensions...
+      dracula-theme.theme-dracula
+      vscodevim.vim
+      yzhang.markdown-all-in-one
+    ];
+  };
+
+
   #programs.shadow-client = {
     ##enable = true;
     #channel = "preprod";
   #};
+  programs.zellij = {
+    enable = true;
+  };
+  
+  programs.fish = {
+    enable = true;
+
+    shellAliases = {
+      "sqlite3" = "rlwrap sqlite3";
+      "l" = "ls -lastr";
+    };
+
+    functions = {
+      fish_greeting = {
+        body = "fortune";
+      };
+    };
+    plugins = [
+      {
+        name = "z";
+        src = pkgs.fetchFromGitHub {
+          owner = "jethrokuan";
+          repo = "z";
+          rev = "ddeb28a7b6a1f0ec6dae40c636e5ca4908ad160a";
+          sha256 = "0c5i7sdrsp0q3vbziqzdyqn4fmp235ax4mn4zslrswvn8g3fvdyh";
+        };
+      }
+
+      # oh-my-fish plugins are stored in their own repositories, which
+      # makes them simple to import into home-manager.
+      {
+        name = "fasd";
+        src = pkgs.fetchFromGitHub {
+          owner = "oh-my-fish";
+          repo = "plugin-fasd";
+          rev = "38a5b6b6011106092009549e52249c6d6f501fba";
+          sha256 = "06v37hqy5yrv5a6ssd1p3cjd9y3hnp19d3ab7dag56fs1qmgyhbs";
+        };
+      }
+    ];
+  };
+
+  programs.nushell = {
+    enable = true;
+    settings = {
+      edit_mode = "vi";
+      startup = [ "alias la [] { ls -a }" "alias e [msg] { echo $msg }" ];
+      key_timeout = 10;
+      completion_mode = "circular";
+      no_auto_pivot = true;
+    };
+  };
+
+  programs.starship = {
+    enable = true;
+    enableFishIntegration = true;
+  };
+
+  programs.alacritty = {
+    enable = true;
+    settings = {
+      shell = {
+        program = "/home/nico/.nix-profile/bin/fish";
+      };
+
+      window.dimensions = {
+        lines = 3;
+        columns = 200;
+      };
+      key_bindings = [
+        {
+          key = "K";
+          mods = "Control";
+          chars = "\\x0c";
+        }
+      ];
+    };
+  };
 
 
   services.gpg-agent = {

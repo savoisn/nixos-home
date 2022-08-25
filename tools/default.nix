@@ -5,6 +5,7 @@
     ./zsh.nix
     ./urxvt.nix
     ./layout.nix
+    ./zellij.nix
   ];
 }
 
